@@ -1,0 +1,107 @@
+#!/bin/bash
+# @Function
+## monitor host:network io memory cpu 
+#
+# @Usage
+#   $ ./monitor-host.sh
+#
+# @author Bryant Hang
+
+readonly PROG=`basename $0`
+
+usage() {
+    local out
+    [ -n "$1" -a "$1" != 0 ] && out=/dev/stderr || out=/dev/stdout
+
+    > $out cat <<EOF
+Usage: ${PROG} [OPTION] [delay [count]]
+
+Example: ${PROG} -l ./monitor_logs
+
+Options:
+    -l, --log-path   monitor logs output path,default is ./monitor_logs 
+    -h, --help      display this help and exit
+    --stop  stop monitor processes
+    delay is the delay between updates in seconds. default is 1
+    count is the number of log outputs. deault is 10
+EOF
+    exit $1
+}
+
+stop(){
+    cat /tmp/MONIOTR_PIDS | while read pid
+    do
+        if [[ $pid == *[0-9]* ]]; then
+            kill -9 $pid
+            echo "kill process ${pid}"
+        fi
+    done
+
+    echo -n > /tmp/MONIOTR_PIDS
+    echo
+    echo 'Done stop monitor threads...'
+
+    exit 0
+}
+
+readonly ARGS=`getopt -n "$PROG" -a -o l:h -l log-path:,help:,stop -- "$@"`
+[ $? -ne 0 ] && usage 1
+eval set -- "${ARGS}"
+
+while true; do
+    case "$1" in
+    -l|--log-path)
+        log_path="$2"
+        shift 2
+        ;;
+    --stop)
+        stop
+        ;;
+    -h|--help)
+        usage
+        ;;
+    --)
+        shift
+        break
+        ;;
+    esac
+done
+
+delay=${1:-1}
+count=${2:-10}
+log_path=${log_path:-'monitor_logs'}
+
+if ! [ -d $log_path ]; then
+    mkdir -p $log_path
+fi
+
+readonly cur_date="`date +%Y%m%d`"
+
+readonly top_log_path=$log_path'/top_'$cur_date'.log'
+readonly memory_log_path=$log_path'/memory_'$cur_date'.log'
+readonly cpu_log_path=$log_path'/cpu_'$cur_date'.log'
+readonly io_log_path=$log_path'/io_'$cur_date'.log'
+readonly network_log_path=$log_path'/network_'$cur_date'.log'
+
+echo -n > /tmp/MONIOTR_PIDS
+# total performance check
+top -b -d $delay -n $count >> $top_log_path 2>&1 &
+echo $! >> /tmp/MONIOTR_PIDS
+
+# memory check
+vmstat $delay $count >> $memory_log_path 2>&1 &
+echo $! >> /tmp/MONIOTR_PIDS
+
+# cpu check
+sar -u $delay $count >> $cpu_log_path 2>&1 &
+echo $! >> /tmp/MONIOTR_PIDS
+
+# IO check
+iostat $delay $count >> $io_log_path 2>&1 &
+echo $! >> /tmp/MONIOTR_PIDS
+
+# network check
+sar -n DEV $delay $count >> $network_log_path 2>&1 &
+echo $! >> /tmp/MONIOTR_PIDS
+
+echo 'Output logs to '$log_path'....' 

@@ -1,0 +1,32 @@
+
+#!/bin/bash
+
+export OPSCRIPTS_DIR=$(dirname $0) 
+
+# load common lib functions
+source $OPSCRIPTS_DIR/opscripts-common.sh
+
+if [ $# = 0 ];then
+    print_column 'Usage '
+    print_column " opscripts list\t: show all commands \nopscripts update\t: update opscripts \nopscripts command\t: execute a command\nopscripts uninstall\t: uninstall opscripts"
+    exit
+fi
+
+if [ "$1" = "list" ];then 
+    list_command "$@"
+fi
+
+bin_dir=$OPSCRIPTS_DIR/bin/
+java_bin_dir=$OPSCRIPTS_DIR/java/bin/
+command_file=$1;shift
+command=`find $bin_dir -maxdepth 1 -name $command_file `
+
+if [ ! -f "$command" ]; then
+    command=`find $java_bin_dir -maxdepth 1 -name $command_file `
+    if [ ! -f "$command" ]; then
+		echo "$command_file command not found!"
+		exit 1;
+    fi
+fi
+
+exec "$command" "$@"

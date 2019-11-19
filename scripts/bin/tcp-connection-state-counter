@@ -1,0 +1,21 @@
+#!/bin/bash
+# @Function
+## show count of tcp connection stat.
+#
+# @Usage
+#   $ ./tcp-connection-state-counter.sh
+#
+# @author Jerry Lee
+# @author @sunuslee
+
+uname | grep Darwin -q && option_for_mac="-ptcp"
+
+netstat -tna $option_for_mac | awk 'NR > 2 {
+    s[$NF]++
+}
+
+END {
+    for(v in s) {
+        printf "%-11s %s\n", v, s[v]
+    }
+}' | sort -nr -k2,2

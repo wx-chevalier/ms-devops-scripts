@@ -1,0 +1,6 @@
+#!/bin/bash
+
+echo "update opscripts ..."
+cd $OPSCRIPTS_DIR && git pull
+
+echo "update finished!"

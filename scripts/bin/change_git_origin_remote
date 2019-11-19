@@ -1,0 +1,15 @@
+#!/bin/bash
+# @Function
+## change origin remote of the  git repository
+#
+# @Usage
+#   $ ./change_git_origin_remote [new_origin_remote_url]
+#
+# @author Bryant Hang
+
+git remote rm origin
+git remote add origin $1
+
+git fetch
+
+git branch --set-upstream-to=origin/master master
