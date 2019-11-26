@@ -1,6 +1,12 @@
 # devops-scripts
 
-本项目是对于 [Backend-Boilerplates](https://github.com/Dev-Snippets/Backend-Boilerplates) 项目中常见的运维脚本的提取与归纳。
+本项目是对于 [Backend-Boilerplates](https://github.com/Dev-Snippets/Backend-Boilerplates) 项目中常见的运维脚本的提取与归纳。目前包含以下类别：
+
+- misc: 杂项
+
+- tuning: 系统监控与性能调优
+
+- harden: 系统加固
 
 # About
 
